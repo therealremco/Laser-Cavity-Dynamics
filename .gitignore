@@ -1,7 +1,5 @@
 .vscode/tasks.json
-Specifications.txt
 *.dat
-cavity-dynamics
-dynamics_steven.cpp
 /docs/*
-CONTEXT.md
+/legacy/*
+/build/
