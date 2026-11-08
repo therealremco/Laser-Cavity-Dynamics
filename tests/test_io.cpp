@@ -6,6 +6,7 @@
 
 #include "cavdyn/Simulator.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <set>
@@ -197,11 +198,17 @@ void writer_header_and_snapshots()
     require(text.find("# grid.gain_cells = 8") != std::string::npos,
             "header does not list the cells per region");
 
+    require(text.find("# time_s\toutput_photons\toutput_power_W\tcavity_photons\t"
+                      "total_inversion\tpump_power_W\n") != std::string::npos,
+            "header does not name the six columns");
+
     std::size_t rows = 0;
     std::istringstream lines(text);
     for (std::string line; std::getline(lines, line);) {
         if (!line.empty() && line.front() != '#') {
             ++rows;
+            require(std::count(line.begin(), line.end(), '\t') == 5,
+                    "row does not have six columns: " + line);
         }
     }
     require(rows == simulator.results().steps().size(), "one row per step was not written");

@@ -218,6 +218,7 @@ Per step:
 - Output power: `P_out = Q_out · (h·c/λ_L) / Δt`
 - Intracavity photons: `Σ (J⁺_i + J⁻_i) · A`
 - Total inversion: `Σ N_i · Δx_i · A`
+- Pump power: `E_p · w(t) / Δt` for a pulse, `P_p` for continuous pumping
 
 Derived after the run: the individual pulses in the train (peak time, peak power, energy,
 FWHM) and the total output energy.
@@ -316,7 +317,7 @@ the call. Snapshots requested with `snapshot_interval` are collected in `Results
 independently. Returning `false` cancels the run.
 
 **`Results`** — the per-step time series (time, output photons, output power, intracavity
-photons, total inversion), the snapshots, and a function that splits the output into pulses.
+photons, total inversion, pump power), the snapshots, and a function that splits the output into pulses.
 Two peaks are separate pulses when the power between them drops below half the smaller
 peak; peaks below 0.1 % of the highest are ignored (both thresholds are arguments). Each
 pulse runs from the lowest point before its peak to the lowest point after it, so the pulse
@@ -347,7 +348,10 @@ Tab-separated text, readable by gnuplot, Origin and Python:
   date and time, every parameter as used (including the default pump mode) and the derived
   grid values.
 - One row per time step: `time_s  output_photons  output_power_W  cavity_photons
-  total_inversion`.
+  total_inversion  pump_power_W`. `pump_power_W` is the incident pump power averaged over
+  the step (before `f_abs` and `η`), so the pump pulse can be plotted against the output;
+  it is 0 with `initial_inversion`, and the first step includes the part of the pulse
+  before `t = 0`.
 - With snapshots enabled, a second file `<name>.snapshots.dat` with blocks of
   `z_m  N  J_plus  J_minus`, separated by blank lines and labelled with their time.
 - A short summary at the end of the run on screen: pulses found, their energies and spacing.

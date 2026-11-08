@@ -57,6 +57,7 @@ void Simulator::step()
     const std::size_t count = grid_.size();
 
     // 1. Pump.
+    const double pump_energy = pump_.incident_energy(t0, dt);
     const double deposited_density = pump_.deposition_density(t0, dt);
     for (std::size_t i = 0; i < count; ++i) {
         const double pump_fraction = grid_.cells()[i].pump_fraction;
@@ -112,7 +113,8 @@ void Simulator::step()
         emitted_photons,
         emitted_photons * gain_medium_.photon_energy() / dt,
         cavity_photons(),
-        total_inversion()
+        total_inversion(),
+        pump_energy / dt
     };
     results_.steps_.push_back(result);
     if (params_.simulation.snapshot_interval > 0 &&

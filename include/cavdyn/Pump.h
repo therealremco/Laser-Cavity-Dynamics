@@ -22,7 +22,15 @@ public:
     /// pump delivers before t = 0, so no pump energy is lost at the start.
     double deposition_density(double interval_start, double time_step) const;
 
+    /// Pump energy (J) arriving in the interval, before absorbed_fraction and
+    /// efficiency: the pulse energy in the interval, or P·Δt for continuous
+    /// pumping. Zero for initial_inversion, which has no optical pump. The
+    /// first interval includes everything before t = 0.
+    double incident_energy(double interval_start, double time_step) const;
+
 private:
+    bool contains_delay(double interval_start, double time_step) const noexcept;
+
     PumpParams params_;
     double mode_area_;
 };

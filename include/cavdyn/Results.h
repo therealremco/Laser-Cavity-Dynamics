@@ -5,12 +5,14 @@
 
 namespace cavdyn {
 
+/// Results of one step. Rates are averages over the step, which ends at `time`.
 struct StepResult {
-    double time = 0.0;
-    double output_photons = 0.0;
-    double output_power = 0.0;
-    double cavity_photons = 0.0;
-    double total_inversion = 0.0;
+    double time = 0.0;              // s, end of the step
+    double output_photons = 0.0;    // photons leaving through the output coupler
+    double output_power = 0.0;      // W
+    double cavity_photons = 0.0;    // photons in the cavity
+    double total_inversion = 0.0;   // excited molecules in the cavity
+    double pump_power = 0.0;        // W, incident pump power (0 for initial_inversion)
 };
 
 struct StateView {

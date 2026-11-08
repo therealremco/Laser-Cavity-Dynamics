@@ -96,11 +96,11 @@ void write_results(const std::string& path, const Parameters& params,
         << "\n# grid.right_background_cells = " << grid.right_background_cells()
         << "\n# grid.actual_length = " << grid.actual_length()
         << "\n# grid.round_trip_time = " << grid.round_trip_time()
-        << "\n# time_s\toutput_photons\toutput_power_W\tcavity_photons\ttotal_inversion\n";
+        << "\n# time_s\toutput_photons\toutput_power_W\tcavity_photons\ttotal_inversion\tpump_power_W\n";
     for (const StepResult& result : results.steps()) {
         output << result.time << '\t' << result.output_photons << '\t'
                << result.output_power << '\t' << result.cavity_photons << '\t'
-               << result.total_inversion << '\n';
+               << result.total_inversion << '\t' << result.pump_power << '\n';
     }
     output.close();
     if (!output) {

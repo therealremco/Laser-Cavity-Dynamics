@@ -89,6 +89,58 @@ void initial_inversion_waits_for_delay()
     }
 }
 
+void pump_power_follows_the_pulse()
+{
+    // A 5 ps pulse at 20 ps, several steps wide: the pump power column must
+    // integrate to the pulse energy, peak at the delay and have the pulse FWHM.
+    auto params = quiet_parameters();
+    params.pump.pulse_energy = 1e-6;
+    params.pump.pulse_duration = 5e-12;
+    params.pump.delay = 20e-12;
+    params.simulation.duration = 60e-12;
+    cavdyn::Simulator simulator(params);
+    simulator.run();
+    const auto& steps = simulator.results().steps();
+    const double dt = simulator.grid().time_step();
+
+    double energy = 0.0;
+    const cavdyn::StepResult* peak = &steps.front();
+    for (const auto& step : steps) {
+        energy += step.pump_power * dt;
+        if (step.pump_power > peak->pump_power) {
+            peak = &step;
+        }
+    }
+    require_close(energy, *params.pump.pulse_energy, 1e-9, "pump power integrated over time");
+    require(std::abs(peak->time - 0.5 * dt - params.pump.delay) <= 0.5 * dt + 1e-18,
+            "pump power does not peak at pump.delay");
+    std::size_t above_half = 0;
+    for (const auto& step : steps) {
+        above_half += step.pump_power >= 0.5 * peak->pump_power ? 1 : 0;
+    }
+    require(std::abs(static_cast<double>(above_half) * dt - params.pump.pulse_duration) <=
+                1.5 * dt,
+            "pump power FWHM does not match pump.pulse_duration");
+}
+
+void pump_power_continuous_and_direct()
+{
+    auto continuous = quiet_parameters();
+    continuous.pump.power = 2.5;
+    continuous.pump.pulse_duration = infinity;
+    cavdyn::Simulator pumped(continuous);
+    pumped.run();
+    for (const auto& step : pumped.results().steps()) {
+        require_close(step.pump_power, 2.5, 1e-12, "continuous pump power");
+    }
+
+    cavdyn::Simulator direct(quiet_parameters());
+    direct.run();
+    for (const auto& step : direct.results().steps()) {
+        require(step.pump_power == 0.0, "initial_inversion should report no pump power");
+    }
+}
+
 void molecule_density_clamps_inversion()
 {
     auto params = quiet_parameters();
@@ -188,6 +240,8 @@ int main(int argc, char** argv)
         {"initial_inversion_scales_with_pump_fraction",
          initial_inversion_scales_with_pump_fraction},
         {"initial_inversion_waits_for_delay", initial_inversion_waits_for_delay},
+        {"pump_power_follows_the_pulse", pump_power_follows_the_pulse},
+        {"pump_power_continuous_and_direct", pump_power_continuous_and_direct},
         {"molecule_density_clamps_inversion", molecule_density_clamps_inversion},
         {"emission_and_snapshots", emission_and_snapshots},
         {"observer_sees_every_step_and_can_cancel", observer_sees_every_step_and_can_cancel},
