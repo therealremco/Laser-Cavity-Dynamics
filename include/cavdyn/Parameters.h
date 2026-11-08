@@ -58,7 +58,14 @@ struct Parameters {
     PumpParams pump;
     SimulationParams simulation;
 
+    /// Throws ParameterError naming the first invalid parameter.
     void validate() const;
+
+    /// Validated copy with defaults applied: when no pump mode is given,
+    /// pump.initial_inversion takes default_initial_inversion.
+    Parameters resolved() const;
+
+    static constexpr double default_initial_inversion = 1e23;
 };
 
 } // namespace cavdyn

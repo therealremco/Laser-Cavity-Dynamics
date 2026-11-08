@@ -12,6 +12,10 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
+The tests are split by area (`io`, `components`, `simulator`) plus one CTest test per
+validation case from CONTEXT.md (`validation.*`). Run a single case directly, for example
+`build/cavdyn-validation convergence`.
+
 ## Run
 
 Generate a starter configuration and run it:

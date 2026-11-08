@@ -44,11 +44,14 @@ int main(int argc, char** argv)
         cavdyn::Simulator simulator(params);
         std::cout << std::scientific << std::setprecision(6)
                   << "Time step: " << simulator.grid().time_step() << " s\n"
-                  << "Cells: " << simulator.grid().size() << '\n'
+                  << "Cells: " << simulator.grid().size()
+                  << " (" << simulator.grid().left_background_cells() << " background, "
+                  << simulator.grid().gain_cells() << " gain, "
+                  << simulator.grid().right_background_cells() << " background)\n"
                   << "Actual cavity length: " << simulator.grid().actual_length() << " m\n"
                   << "Round-trip time: " << simulator.grid().round_trip_time() << " s\n";
         simulator.run();
-        cavdyn::write_results(output_path, params, simulator.grid(), simulator.results());
+        cavdyn::write_results(output_path, simulator.parameters(), simulator.grid(), simulator.results());
 
         const auto pulses = simulator.results().pulses();
         std::cout << "Wrote " << simulator.results().steps().size()

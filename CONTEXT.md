@@ -253,17 +253,24 @@ cavity-dynamics/
     Observer.h          Callback interface for progress and snapshots
     Results.h           Time series, snapshots, pulse analysis
   src/
-    (one .cpp per header above)
+    (one .cpp per header above; Constants.h and Observer.h are header-only)
   io/
     ConfigReader.h/.cpp   Reads parameters from a key = value file
     ResultWriter.h/.cpp   Writes .dat files with a parameter header
   apps/cli/
     main.cpp            Command-line front end
   tests/
-    (one test executable per area, run with CTest)
-  legacy/
-    cavity-dynamics.cpp  The 1999 program, kept for comparison
+    TestSupport.h         Shared checks and a runner (`<exe> [test name]`)
+    test_io.cpp           Configuration and result files
+    test_components.cpp   Parameters, Grid, GainMedium, Cavity, Pump in isolation
+    test_simulator.cpp    Stepping, pumping, observers, snapshots, pulse analysis
+    test_validation.cpp   The validation cases below, one CTest test each
 ```
+
+The 1999 program and its specification are kept locally in `legacy/`, which is not
+tracked by git; the original source is in the history (commit `8d7fbda`,
+`cavity-dynamics.cpp`). The legacy comparison test reproduces its geometry from the
+parameters and does not need the old program.
 
 `io` is a separate library so that a GUI can choose its own formats.
 
@@ -290,20 +297,30 @@ public:
     explicit Simulator(const Parameters& params);   // validates, builds grid
     void step();                                     // one Δt
     void run(Observer* observer = nullptr);          // until the requested duration
+    void set_photons(std::size_t cell, double right_moving, double left_moving);
     double time() const;
-    std::size_t stepIndex() const;
+    std::size_t step_index() const;
     const Grid& grid() const;
+    const Parameters& parameters() const;            // with the default pump mode filled in
     StateView state() const;                         // read-only N, J⁺, J⁻ for plotting
     const Results& results() const;
 };
 ```
 
+Method names are `snake_case` throughout. `set_photons` sets a starting packet instead of
+waiting for the spontaneous seed; the propagation and conservation tests use it.
+
 **`Observer`** — the hook for a GUI or a progress bar. `run()` calls it after every step
-with the time and step results and with a `StateView` at each snapshot. Returning `false`
-cancels the run.
+with that step's results and a `StateView` of the current state, which is valid only during
+the call. Snapshots requested with `snapshot_interval` are collected in `Results`
+independently. Returning `false` cancels the run.
 
 **`Results`** — the per-step time series (time, output photons, output power, intracavity
 photons, total inversion), the snapshots, and a function that splits the output into pulses.
+Two peaks are separate pulses when the power between them drops below half the smaller
+peak; peaks below 0.1 % of the highest are ignored (both thresholds are arguments). Each
+pulse runs from the lowest point before its peak to the lowest point after it, so the pulse
+energies add up to the total output energy.
 
 ### Command-line program
 
@@ -314,15 +331,18 @@ cavity-dynamics defaults > config.txt
 
 The configuration is a plain `key = value` file with `#` comments and section headers
 (`[cavity]`, `[gain_medium]`, `[pump]`, `[simulation]`); keys match the *Name* columns above.
-Unknown keys are an error. The program prints the derived grid values (`Δt`, cell counts,
-actual cavity length, round-trip time) before running.
+Unknown keys are an error. The program prints the derived grid values (`Δt`, cell counts per
+region, actual cavity length, round-trip time) before running. The file written by
+`defaults` lists the three pump modes commented out, so enabling one does not clash with
+the default `initial_inversion`.
 
 ### Output file
 
 Tab-separated text, readable by gnuplot, Origin and Python:
 
-- A header of `#` lines with the program version, the date and time, every parameter and
-  the derived grid values.
+- A header of `#` lines with the program version (from CMake's `PROJECT_VERSION`), the
+  date and time, every parameter as used (including the default pump mode) and the derived
+  grid values.
 - One row per time step: `time_s  output_photons  output_power_W  cavity_photons
   total_inversion`.
 - With snapshots enabled, a second file `<name>.snapshots.dat` with blocks of

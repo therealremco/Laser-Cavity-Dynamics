@@ -148,10 +148,6 @@ Parameters read_config(std::istream& input, const std::string& source)
     if (input.bad()) {
         throw std::runtime_error("Failed reading configuration from " + source);
     }
-    if (!params.pump.pulse_energy && !params.pump.power &&
-        !params.pump.initial_inversion) {
-        params.pump.initial_inversion = 1e23;
-    }
     params.validate();
     return params;
 }
@@ -187,6 +183,9 @@ void write_default_config(std::ostream& output)
         << "molecule_density = 0\n"
         << "emission_wavelength = 5.5e-7\n\n"
         << "[pump]\n"
+        << "# Choose at most one pump mode: pulse_energy (J), power (W, with\n"
+        << "# pulse_duration = inf) or initial_inversion (m^-3). With none,\n"
+        << "# initial_inversion = 1e23 is used.\n"
         << "wavelength = 4e-7\n"
         << "start = 0.003\n"
         << "length = 0.009\n"
@@ -194,7 +193,9 @@ void write_default_config(std::ostream& output)
         << "delay = 0\n"
         << "absorbed_fraction = 1\n"
         << "efficiency = 0.8\n"
-        << "initial_inversion = 1e23\n\n"
+        << "# pulse_energy = 1e-6\n"
+        << "# power = 1\n"
+        << "# initial_inversion = 1e23\n\n"
         << "[simulation]\n"
         << "cells_in_gain = 60\n"
         << "round_trips = 25\n"

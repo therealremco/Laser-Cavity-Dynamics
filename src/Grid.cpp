@@ -50,6 +50,9 @@ Grid::Grid(const Parameters& params)
         z += background_cell_length;
     }
     actual_length_ = z;
+    left_count_ = left_count;
+    gain_count_ = params.simulation.cells_in_gain;
+    right_count_ = right_count;
 }
 
 } // namespace cavdyn

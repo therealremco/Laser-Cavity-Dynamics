@@ -8,6 +8,10 @@
 #include <iomanip>
 #include <stdexcept>
 
+#ifndef CAVDYN_VERSION
+#define CAVDYN_VERSION "unknown"
+#endif
+
 namespace cavdyn {
 namespace {
 
@@ -46,7 +50,7 @@ void write_results(const std::string& path, const Parameters& params,
         throw std::runtime_error("Could not open output file: " + path);
     }
     output << std::scientific << std::setprecision(10)
-        << "# cavity-dynamics " << "1.0.0\n"
+        << "# cavity-dynamics " << CAVDYN_VERSION << '\n'
         << "# generated_utc = " << timestamp() << '\n'
         << "# cavity.length = " << params.cavity.length << '\n'
         << "# cavity.r_hr = " << params.cavity.r_hr << '\n'
@@ -87,6 +91,9 @@ void write_results(const std::string& path, const Parameters& params,
         << "\n# simulation.snapshot_interval = " << params.simulation.snapshot_interval
         << "\n# grid.time_step = " << grid.time_step()
         << "\n# grid.cells = " << grid.size()
+        << "\n# grid.left_background_cells = " << grid.left_background_cells()
+        << "\n# grid.gain_cells = " << grid.gain_cells()
+        << "\n# grid.right_background_cells = " << grid.right_background_cells()
         << "\n# grid.actual_length = " << grid.actual_length()
         << "\n# grid.round_trip_time = " << grid.round_trip_time()
         << "\n# time_s\toutput_photons\toutput_power_W\tcavity_photons\ttotal_inversion\n";

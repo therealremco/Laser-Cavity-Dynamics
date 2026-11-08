@@ -95,4 +95,14 @@ void Parameters::validate() const
     }
 }
 
+Parameters Parameters::resolved() const
+{
+    validate();
+    Parameters result = *this;
+    if (!result.pump.pulse_energy && !result.pump.power && !result.pump.initial_inversion) {
+        result.pump.initial_inversion = default_initial_inversion;
+    }
+    return result;
+}
+
 } // namespace cavdyn

@@ -24,11 +24,19 @@ public:
     double actual_length() const noexcept { return actual_length_; }
     double round_trip_time() const noexcept { return 2.0 * cells_.size() * time_step_; }
     std::size_t size() const noexcept { return cells_.size(); }
+    /// Cells between the high reflector and the gain medium.
+    std::size_t left_background_cells() const noexcept { return left_count_; }
+    std::size_t gain_cells() const noexcept { return gain_count_; }
+    /// Cells between the gain medium and the output coupler.
+    std::size_t right_background_cells() const noexcept { return right_count_; }
     const std::vector<Cell>& cells() const noexcept { return cells_; }
 
 private:
     double time_step_ = 0.0;
     double actual_length_ = 0.0;
+    std::size_t left_count_ = 0;
+    std::size_t gain_count_ = 0;
+    std::size_t right_count_ = 0;
     std::vector<Cell> cells_;
 };
 
