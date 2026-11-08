@@ -1,10 +1,12 @@
 #include "ConfigReader.h"
 
 #include <cctype>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <limits>
 #include <map>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 
@@ -102,6 +104,62 @@ void assign(Parameters& params, const std::string& section, const std::string& k
     }
 }
 
+/// Shortest decimal text that reads back as exactly the same double.
+std::string format_number(double value)
+{
+    if (std::isinf(value)) {
+        return value > 0.0 ? "inf" : "-inf";
+    }
+    std::string text;
+    for (int precision = 1; precision <= 17; ++precision) {
+        std::ostringstream stream;
+        stream << std::setprecision(precision) << value;
+        text = stream.str();
+        if (std::stod(text) == value) {
+            break;
+        }
+    }
+    return text;
+}
+
+void write_line(std::ostream& output, bool commented, const std::string& key,
+                const std::string& value, const std::string& unit)
+{
+    std::ostringstream line;
+    line << (commented ? "# " : "") << key << " = " << value;
+    output << line.str();
+    if (!unit.empty()) {
+        const std::size_t column = 30;
+        const std::size_t length = line.str().size();
+        output << std::string(length < column ? column - length : 1, ' ') << "# " << unit;
+    }
+    output << '\n';
+}
+
+void write_entry(std::ostream& output, const std::string& key, double value,
+                 const std::string& unit)
+{
+    write_line(output, false, key, format_number(value), unit);
+}
+
+void write_size_entry(std::ostream& output, const std::string& key, std::size_t value,
+                      const std::string& unit)
+{
+    write_line(output, false, key, std::to_string(value), unit);
+}
+
+/// An unset optional is written commented out, with its fallback value when it has one.
+void write_optional_entry(std::ostream& output, const std::string& key,
+                          const std::optional<double>& value,
+                          const std::optional<double>& fallback, const std::string& unit)
+{
+    if (value) {
+        write_entry(output, key, *value, unit);
+        return;
+    }
+    write_line(output, true, key, fallback ? format_number(*fallback) : "", unit);
+}
+
 } // namespace
 
 Parameters read_config(std::istream& input, const std::string& source)
@@ -163,43 +221,58 @@ Parameters read_config_file(const std::string& path)
 
 void write_default_config(std::ostream& output)
 {
-    output << std::setprecision(17)
-        << "# Laser cavity dynamics configuration (SI units)\n"
-        << "[cavity]\n"
-        << "length = 0.015\n"
-        << "r_hr = 1\n"
-        << "r_oc = 0.95\n"
-        << "n_background = 1\n"
-        << "mode_area = 1e-8\n\n"
-        << "[gain_medium]\n"
-        << "start = 0.003\n"
-        << "length = 0.009\n"
-        << "n_medium = 1.5\n"
-        << "cross_section = 1e-20\n"
-        << "lifetime = 1e-9\n"
-        << "quantum_yield = 1\n"
-        << "beta = 1e-4\n"
-        << "internal_loss = 0\n"
-        << "molecule_density = 0\n"
-        << "emission_wavelength = 5.5e-7\n\n"
-        << "[pump]\n"
-        << "# Choose at most one pump mode: pulse_energy (J), power (W, with\n"
-        << "# pulse_duration = inf) or initial_inversion (m^-3). With none,\n"
-        << "# initial_inversion = 1e23 is used.\n"
-        << "wavelength = 4e-7\n"
-        << "start = 0.003\n"
-        << "length = 0.009\n"
-        << "pulse_duration = 1e-13\n"
-        << "delay = 0\n"
-        << "absorbed_fraction = 1\n"
-        << "efficiency = 0.8\n"
-        << "# pulse_energy = 1e-6\n"
-        << "# power = 1\n"
-        << "# initial_inversion = 1e23\n\n"
-        << "[simulation]\n"
-        << "cells_in_gain = 60\n"
-        << "round_trips = 25\n"
-        << "snapshot_interval = 0\n";
+    // Every value comes from the defaults in Parameters.h.
+    const Parameters defaults;
+    const auto& cavity = defaults.cavity;
+    const auto& gain = defaults.gain_medium;
+    const auto& pump = defaults.pump;
+    const auto& simulation = defaults.simulation;
+
+    output << "# Laser cavity dynamics configuration (SI units).\n"
+           << "# These are the built-in defaults. Keys left out of a configuration\n"
+           << "# keep these values, so a file only needs the keys it changes.\n"
+           << "\n[cavity]\n";
+    write_entry(output, "length", cavity.length, "m");
+    write_entry(output, "r_hr", cavity.r_hr, "");
+    write_entry(output, "r_oc", cavity.r_oc, "");
+    write_entry(output, "n_background", cavity.n_background, "");
+    write_entry(output, "mode_area", cavity.mode_area, "m^2");
+
+    output << "\n[gain_medium]\n";
+    write_entry(output, "start", gain.start, "m");
+    write_entry(output, "length", gain.length, "m");
+    write_entry(output, "n_medium", gain.n_medium, "");
+    write_entry(output, "cross_section", gain.cross_section, "m^2");
+    write_entry(output, "lifetime", gain.lifetime, "s");
+    write_entry(output, "quantum_yield", gain.quantum_yield, "");
+    write_entry(output, "beta", gain.beta, "");
+    write_entry(output, "internal_loss", gain.internal_loss, "m^-1");
+    write_entry(output, "molecule_density", gain.molecule_density, "m^-3, 0 = off");
+    write_entry(output, "emission_wavelength", gain.emission_wavelength, "m");
+
+    output << "\n[pump]\n";
+    write_entry(output, "wavelength", pump.wavelength, "m");
+    write_entry(output, "start", pump.start, "m");
+    write_entry(output, "length", pump.length, "m");
+    write_entry(output, "pulse_duration", pump.pulse_duration, "s, 0 = instantaneous, inf = continuous");
+    write_entry(output, "delay", pump.delay, "s");
+    write_entry(output, "absorbed_fraction", pump.absorbed_fraction, "");
+    write_entry(output, "efficiency", pump.efficiency, "");
+    output << "# Pump mode: set at most one of these. With none, initial_inversion\n"
+           << "# takes the value below.\n";
+    write_optional_entry(output, "pulse_energy", pump.pulse_energy, std::nullopt, "J");
+    write_optional_entry(output, "power", pump.power, std::nullopt,
+                         "W, needs pulse_duration = inf");
+    write_optional_entry(output, "initial_inversion", pump.initial_inversion,
+                         Parameters::default_initial_inversion, "m^-3");
+
+    output << "\n[simulation]\n";
+    write_size_entry(output, "cells_in_gain", simulation.cells_in_gain, "");
+    write_optional_entry(output, "duration", simulation.duration, std::nullopt,
+                         "s, replaces round_trips");
+    write_entry(output, "round_trips", simulation.round_trips, "");
+    write_size_entry(output, "snapshot_interval", simulation.snapshot_interval,
+                     "steps, 0 = off");
     if (!output) {
         throw std::runtime_error("Failed writing default configuration");
     }

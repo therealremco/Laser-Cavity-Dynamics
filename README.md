@@ -25,6 +25,15 @@ build/cavity-dynamics defaults > config.txt
 build/cavity-dynamics run config.txt -o output.dat
 ```
 
+The defaults are defined once, in `include/cavdyn/Parameters.h`; `defaults` prints them.
+A configuration file only overrides: any key it leaves out keeps its default, so a file
+can be as short as
+
+```ini
+[gain_medium]
+lifetime = 1e-10
+```
+
 The simulation writes tab-separated time-series data suitable for gnuplot,
 Origin, or Python. If snapshots are enabled in the configuration, a companion
 `output.snapshots.dat` file contains the spatial profiles. All parameters use

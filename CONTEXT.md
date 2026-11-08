@@ -331,7 +331,10 @@ cavity-dynamics defaults > config.txt
 
 The configuration is a plain `key = value` file with `#` comments and section headers
 (`[cavity]`, `[gain_medium]`, `[pump]`, `[simulation]`); keys match the *Name* columns above.
-Unknown keys are an error. The program prints the derived grid values (`Δt`, cell counts per
+Unknown keys are an error. Every key is optional: the file overrides the defaults in
+`Parameters.h`, which are the only place default values are defined. `defaults` writes
+them from a default-constructed `Parameters`, each key with its unit, and unset optional
+keys (the pump modes, `duration`) commented out. The program prints the derived grid values (`Δt`, cell counts per
 region, actual cavity length, round-trip time) before running. The file written by
 `defaults` lists the three pump modes commented out, so enabling one does not clash with
 the default `initial_inversion`.
