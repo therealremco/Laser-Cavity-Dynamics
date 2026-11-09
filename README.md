@@ -57,6 +57,33 @@ Origin, or Python. If snapshots are enabled in the configuration, a companion
 SI units; see [CONTEXT.md](CONTEXT.md) for the physical model and parameter
 definitions.
 
+## View Output
+
+To view the output, you can use `gnuplot`:
+
+### output.dat
+```sh
+brew install gnuplot
+gnuplot -p -e "set xlabel 'time (ns)'; set y2tics; plot 'output.dat' u 1:2 w l t 'output photons', '' u 1:6 axes x1y2 w l t 'pump energy (J)'"
+```
+This shows the pump pulse and the output photons (modify for `initial_inversion` or `power` simulations).
+
+Or use the `gnuplot` scripts:
+```sh
+gnuplot -p ./gp-scripts/plot-stacked.gp
+gnuplot -p ./gp-scripts/plot-log.gp
+```
+These show the number of output photons, the inversion and the pump energy as a) a stacked graph and b) a log plot in one graph.
+
+### output.snapshot.dat
+Enabling snapshots (by setting the `snapshot_interval` parameter in `config.txt` to a nonzero value) stores snapshots of the energy and inversion _inside_ the cavity. One roundtrip is equivalent to 280 steps, so to get a smooth animation an interval of 5 or less is recommended. Note: at interval 1 the resulting file is 26.8 MB.
+```sh
+gnuplot -p ./gp-scripts/snapshot-animation.gp
+gnuplot -p ./gp-scripts/snapshot-heatmap.gp
+gnuplot -p ./gp-scripts/snapshot-medium-inversion-heatmap.gp
+```
+The heatmaps show the inversion as a function of time (y-axis), one for the total cavity on a linear color scale and one for the gain medium on a log colour scale.
+
 ## Web version
 
 The core also compiles to WebAssembly, so the simulation runs in the browser and the
@@ -92,33 +119,6 @@ AddType application/wasm .wasm
 
 The sources are in `web/`: `bindings.cpp` maps the page's parameters onto `Parameters`
 and returns the results to JavaScript; the page itself has no third-party dependencies.
-
-## View Output
-
-To view the output, you can use `gnuplot`:
-
-### output.dat
-```sh
-brew install gnuplot
-gnuplot -p -e "set xlabel 'time (ns)'; set y2tics; plot 'output.dat' u 1:2 w l t 'output photons', '' u 1:6 axes x1y2 w l t 'pump energy (J)'"
-```
-This shows the pump pulse and the output photons (modify for `initial_inversion` or `power` simulations).
-
-Or use the `gnuplot` scripts:
-```sh
-gnuplot -p ./gp-scripts/plot-stacked.gp
-gnuplot -p ./gp-scripts/plot-log.gp
-```
-These show the number of output photons, the inversion and the pump energy as a) a stacked graph and b) a log plot in one graph.
-
-### output.snapshot.dat
-Enabling snapshots (by setting the `snapshot_interval` parameter in `config.txt` to a nonzero value) stores snapshots of the energy and inversion _inside_ the cavity. One roundtrip is equivalent to 280 steps, so to get a smooth animation an interval of 5 or less is recommended. Note: at interval 1 the resulting file is 26.8 MB.
-```sh
-gnuplot -p ./gp-scripts/snapshot-animation.gp
-gnuplot -p ./gp-scripts/snapshot-heatmap.gp
-gnuplot -p ./gp-scripts/snapshot-medium-inversion-heatmap.gp
-```
-The heatmaps show the inversion as a function of time (y-axis), one for the total cavity on a linear color scale and one for the gain medium on a log colour scale.
 
 ## License
 
