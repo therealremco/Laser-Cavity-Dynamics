@@ -57,6 +57,42 @@ Origin, or Python. If snapshots are enabled in the configuration, a companion
 SI units; see [CONTEXT.md](CONTEXT.md) for the physical model and parameter
 definitions.
 
+## Web version
+
+The core also compiles to WebAssembly, so the simulation runs in the browser and the
+site can be hosted as plain static files (no server-side code). The web version keeps a
+5 mm gain medium centred in the cavity, lets you change the cavity length, the pump
+parameters, the cross section and the internal loss, and records no snapshots.
+
+Build it with [Emscripten](https://emscripten.org) (`brew install emscripten`):
+
+```sh
+emcmake cmake -S . -B build-web
+cmake --build build-web
+```
+
+The finished site is in `build-web/site`: `index.html`, `app.js`, `plot.js`,
+`worker.js`, `style.css`, `cavdyn.js` and `cavdyn.wasm`. To try it locally:
+
+```sh
+python3 -m http.server 8765 --directory build-web/site
+```
+
+and open <http://localhost:8765>. Opening `index.html` directly from disk does not work,
+because browsers only load WebAssembly modules and module workers over HTTP.
+
+To publish it, upload the contents of `build-web/site` to any web space (the
+[license](#license) reserves publishing to the author). The server must
+send `.wasm` files as `application/wasm`; on Apache (e.g. Strato) add this to an
+`.htaccess` file next to them if it doesn't already:
+
+```apache
+AddType application/wasm .wasm
+```
+
+The sources are in `web/`: `bindings.cpp` maps the page's parameters onto `Parameters`
+and returns the results to JavaScript; the page itself has no third-party dependencies.
+
 ## View Output
 
 To view the output, you can use `gnuplot`:
@@ -83,3 +119,28 @@ gnuplot -p ./gp-scripts/snapshot-heatmap.gp
 gnuplot -p ./gp-scripts/snapshot-medium-inversion-heatmap.gp
 ```
 The heatmaps show the inversion as a function of time (y-axis), one for the total cavity on a linear color scale and one for the gain medium on a log colour scale.
+
+## License
+
+This project is source-available under the [PolyForm Strict License 1.0.0](LICENSE), with
+one additional permission for local changes. In short (the [LICENSE](LICENSE) file is what
+counts):
+
+**You may**
+- download, build and run the command-line program and the web interface on your own
+  computer, including serving the web interface locally (for example with
+  `python3 -m http.server`), for any noncommercial purpose: personal study, research,
+  teaching, hobby projects, or use by a university, research institute or other
+  noncommercial organisation;
+- change the code and build your own version for your own local use, **provided you let me
+  know by email at <remco@therequirements.company>** (before, or within 30 days of, making
+  the changes).
+
+**You may not**
+- publish the web interface, or any other part of this software, on the internet or make
+  it available to others over a network;
+- distribute copies of the software, changed or unchanged, or works based on it;
+- use it for commercial purposes.
+
+If you'd like to do something the license doesn't allow, such as hosting the web interface
+for a course or a research group, email me at <remco@therequirements.company>.

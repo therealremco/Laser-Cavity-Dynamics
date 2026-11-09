@@ -26,6 +26,40 @@ target_compile_features(cavdyn_io PUBLIC cxx_std_17)
 target_compile_options(cavdyn_io PRIVATE -Wall -Wextra -Wpedantic)
 target_compile_definitions(cavdyn_io PRIVATE CAVDYN_VERSION="${PROJECT_VERSION}")
 
+if(EMSCRIPTEN)
+    # Browser version: emcmake cmake -S . -B build-web && cmake --build build-web
+    # The finished site (HTML, JS and the .wasm module) ends up in build-web/site.
+    # The core throws ParameterError for invalid input, so it needs exception support.
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+    endif()
+    target_compile_options(cavdyn PUBLIC -fwasm-exceptions)
+    set(CAVDYN_SITE_DIR ${CMAKE_BINARY_DIR}/site)
+
+    add_executable(cavdyn-web web/bindings.cpp)
+    target_link_libraries(cavdyn-web PRIVATE cavdyn)
+    target_compile_options(cavdyn-web PRIVATE -Wall -Wextra -Wpedantic)
+    target_link_options(cavdyn-web PRIVATE
+        -fwasm-exceptions
+        -lembind
+        -sMODULARIZE=1
+        -sEXPORT_ES6=1
+        -sEXPORT_NAME=createCavdyn
+        -sENVIRONMENT=web,worker
+        -sALLOW_MEMORY_GROWTH=1
+    )
+    set_target_properties(cavdyn-web PROPERTIES
+        OUTPUT_NAME cavdyn
+        SUFFIX .js
+        RUNTIME_OUTPUT_DIRECTORY ${CAVDYN_SITE_DIR}
+    )
+    foreach(file index.html app.js plot.js worker.js style.css)
+        configure_file(web/${file} ${CAVDYN_SITE_DIR}/${file} COPYONLY)
+    endforeach()
+    configure_file(LICENSE ${CAVDYN_SITE_DIR}/LICENSE.txt COPYONLY)
+    return()
+endif()
+
 add_executable(cavity-dynamics apps/cli/main.cpp)
 target_link_libraries(cavity-dynamics PRIVATE cavdyn_io)
 

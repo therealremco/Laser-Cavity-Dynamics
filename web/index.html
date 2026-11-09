@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Laser Cavity Dynamics</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="app.js"></script>
+</head>
+<body>
+<header>
+    <h1>Laser Cavity Dynamics</h1>
+    <p>A one-dimensional, time-dependent simulation of a short laser cavity with a 5&nbsp;mm
+       gain medium centred in the cavity. Change a parameter and the simulation reruns in your
+       browser.</p>
+</header>
+
+<main>
+    <form id="controls" autocomplete="off">
+        <fieldset>
+            <legend>Cavity</legend>
+            <label>Length <span class="unit">mm</span>
+                <input name="cavity_length" type="number" min="5" max="100" step="0.5" value="15">
+            </label>
+            <input name="cavity_length_range" type="range" min="5" max="100" step="0.5" value="15"
+                   aria-label="Cavity length (slider)">
+            <label>Round trips simulated
+                <input name="round_trips" type="number" min="1" max="200" step="1" value="10">
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Gain medium</legend>
+            <label>Cross section <span class="unit">10⁻²⁰ m²</span>
+                <input name="cross_section" type="number" min="0.01" step="0.1" value="5">
+            </label>
+            <label>Internal loss <span class="unit">m⁻¹</span>
+                <input name="internal_loss" type="number" min="0" step="1" value="50">
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Pump</legend>
+            <div class="modes" role="radiogroup" aria-label="Pump mode">
+                <label><input type="radio" name="pump_mode" value="pulse" checked> Pulse</label>
+                <label><input type="radio" name="pump_mode" value="continuous"> Continuous</label>
+                <label><input type="radio" name="pump_mode" value="initial_inversion"> Initial inversion</label>
+            </div>
+            <label data-mode="pulse">Pulse energy <span class="unit">µJ</span>
+                <input name="pulse_energy" type="number" min="0" step="0.05" value="0.75">
+            </label>
+            <label data-mode="pulse">Pulse duration (FWHM, 0 = instant) <span class="unit">ps</span>
+                <input name="pulse_duration" type="number" min="0" step="0.5" value="13">
+            </label>
+            <label data-mode="continuous">Power <span class="unit">W</span>
+                <input name="power" type="number" min="0" step="0.1" value="1">
+            </label>
+            <label data-mode="initial_inversion">Initial inversion <span class="unit">10²² m⁻³</span>
+                <input name="initial_inversion" type="number" min="0" step="1" value="10">
+            </label>
+            <label data-mode="pulse initial_inversion"><span data-delay-label>Arrival of the pulse peak</span> <span class="unit">ps</span>
+                <input name="pump_delay" type="number" min="0" step="10" value="100">
+            </label>
+            <label data-mode="pulse continuous">Wavelength <span class="unit">nm</span>
+                <input name="pump_wavelength" type="number" min="1" step="10" value="400">
+            </label>
+            <label data-mode="pulse continuous">Absorbed fraction
+                <input name="absorbed_fraction" type="number" min="0" max="1" step="0.05" value="1">
+            </label>
+            <label data-mode="pulse continuous">Efficiency
+                <input name="efficiency" type="number" min="0" max="1" step="0.05" value="0.8">
+            </label>
+        </fieldset>
+        <button type="button" id="reset">Reset to defaults</button>
+    </form>
+
+    <section id="output" aria-live="polite">
+        <div id="status" class="status">Loading the simulation…</div>
+
+        <div class="card">
+            <div class="card-head">
+                <h2>Output and pump energy <span class="subtitle">per time step (Δt = <span id="energy-step">–</span>)</span></h2>
+                <label class="toggle"><input type="checkbox" id="log-scale"> Log scale (output)</label>
+            </div>
+            <div class="legend">
+                <span><i style="background:var(--series-1)"></i>Output energy (left axis)</span>
+                <span><i style="background:var(--series-2)"></i>Pump energy (right axis)</span>
+            </div>
+            <div class="plot" id="plot-energy"></div>
+        </div>
+
+        <div class="card">
+            <h2>Inversion and intracavity photons</h2>
+            <div class="legend">
+                <span><i style="background:var(--series-3)"></i>Excited molecules (left axis)</span>
+                <span><i style="background:var(--series-1)"></i>Photons in the cavity (right axis)</span>
+            </div>
+            <div class="plot" id="plot-state"></div>
+        </div>
+
+        <div class="card">
+            <h2>Pulses</h2>
+            <dl id="summary" class="summary"></dl>
+            <div class="table-wrap">
+                <table id="pulses">
+                    <thead><tr><th>#</th><th>Peak time</th><th>Energy</th>
+                        <th>FWHM</th><th>Spacing</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <details class="card">
+            <summary>Fixed parameters</summary>
+            <dl id="fixed" class="summary"></dl>
+        </details>
+    </section>
+</main>
+
+<footer>
+    &copy; Remco van Schoonderwoerd den Bezemer 2026 ·
+    <a href="LICENSE.txt">PolyForm Strict License 1.0.0</a>, with an additional permission for local changes
+</footer>
+</body>
+</html>
