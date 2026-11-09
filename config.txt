@@ -1,0 +1,42 @@
+# Laser cavity dynamics configuration (SI units)
+[cavity]
+length = 0.015
+r_hr = 1
+r_oc = 0.95
+n_background = 1
+mode_area = 1e-8
+
+[gain_medium]
+start = 0.005
+length = 0.005
+n_medium = 1.5
+cross_section = 5e-20
+lifetime = 0.67e-9
+quantum_yield = 1
+beta = 1e-6
+internal_loss = 50
+molecule_density = 0
+emission_wavelength = 5.5e-7
+
+[pump]
+# Choose at most one pump mode: pulse_energy (J), power (W, with
+# pulse_duration = inf) or initial_inversion (m^-3). With none,
+# initial_inversion = 1e23 is used.
+wavelength = 4e-7
+start = 0.005
+length = 0.005
+pulse_duration = 130e-13
+delay = 100e-12
+absorbed_fraction = 1
+efficiency = 0.8
+pulse_energy = 7.5e-7
+# power = 1
+# initial_inversion = 1e22
+
+[simulation]
+cells_in_gain = 60
+round_trips = 10
+# Snapshots record the inversion and the photon density of the two 
+# pulses (J+/J-) inside the cavity. One roundtrip is 280 steps, to get 
+# smooth animation use an interval of 5 or less
+snapshot_interval = 0
