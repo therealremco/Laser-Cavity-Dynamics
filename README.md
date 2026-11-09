@@ -3,12 +3,16 @@ A one-dimensional, time-dependent simulation of a short laser cavity with a
 spatially inhomogeneous gain medium. The C++17 core has no third-party
 dependencies and can be used independently of the command-line interface.
 
-<img src="/assets/20261109-016.png" alt="Simulation output" style="height:480px; width:640px;">
+<p align="center">
+    <img src="/assets/20261109-016.png" alt="Simulation output" style="height:480px; width:640px;">
+</p>
 
 ## Introduction
 I created the original version of this programme during my master's thesis research project within the Quantum Optics group of Molecular Physics, Faculty of Science and Mathematics at the University of Leiden in 1999. It was based on a program created by Dr S.A. (Steven) van den Berg who supervised my work as a PhD-student at the time. I applied a slighty different implementation using the coupled cavity-atom rate equations as formulated by Siegman<sup>1</sup>.
 
-<img src="/assets/KTB.JPG" alt="A small PPV in solution laser" style="height:285px; width:356px;">
+<p align="center">
+    <img src="/assets/KTB.JPG" alt="A small PPV in solution laser" style="height:285px; width:356px;">
+</p>
 
 At the time we were researching fundamental optical properties of a PPV-derivative organic semiconductor material and the phenomenon of "transient gain", i.e. laser gain that seems to disappear without conforming to standard laser rate equations. We quickly discovered that a small (1.5 cm) cavity of the material in solution produced pronounced spikes in the output. Although I credit myself with being the first to see the unusual measurements, it was Steven that did the work of figuring out the dynamics involved. He published a [paper](https://opg.optica.org/ol/viewmedia.cfm?uri=ol-24-24-1847) on the results in _Optics Letters_ <sup>2</sup>.
 
