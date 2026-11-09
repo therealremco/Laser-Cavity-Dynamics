@@ -349,9 +349,10 @@ Tab-separated text, readable by gnuplot, Origin and Python:
   grid values.
 - One row per time step: `time_s  output_photons  output_power_W  cavity_photons
   total_inversion  pump_power_W`. `pump_power_W` is the incident pump power averaged over
-  the step (before `f_abs` and `η`), so the pump pulse can be plotted against the output;
-  it is 0 with `initial_inversion`, and the first step includes the part of the pulse
-  before `t = 0`.
+  the step (before `f_abs` and `η`), so the pump can be plotted against the output; it is
+  0 with `initial_inversion`. With `pulse_energy` the column is `pump_energy_J` instead:
+  the pump energy incident in each step, which sums to `pump.pulse_energy`. The first
+  step includes the part of the pulse before `t = 0`.
 - With snapshots enabled, a second file `<name>.snapshots.dat` with blocks of
   `z_m  N  J_plus  J_minus`, separated by blank lines and labelled with their time.
 - A short summary at the end of the run on screen: pulses found, their energies and spacing.

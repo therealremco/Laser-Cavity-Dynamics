@@ -226,6 +226,44 @@ void writer_header_and_snapshots()
     std::filesystem::remove(snapshots);
 }
 
+void writer_reports_pump_pulse_energy()
+{
+    // With pump.pulse_energy the sixth column is the energy per step in J, and
+    // the column sums to the pulse energy.
+    cavdyn::Parameters params;
+    params.simulation.cells_in_gain = 8;
+    params.simulation.round_trips = 1.0;
+    params.pump.pulse_energy = 1e-6;
+    params.pump.pulse_duration = 2e-12;
+    params.pump.delay = 3e-12;
+    cavdyn::Simulator simulator(params);
+    simulator.run();
+
+    const auto path = std::filesystem::temp_directory_path() / "cavdyn-test-pulsed.dat";
+    cavdyn::write_results(path.string(), simulator.parameters(), simulator.grid(),
+                          simulator.results());
+    std::ifstream output(path);
+    std::string header;
+    double energy = 0.0;
+    for (std::string line; std::getline(output, line);) {
+        if (line.rfind("# time_s", 0) == 0) {
+            header = line;
+        } else if (!line.empty() && line.front() != '#') {
+            std::istringstream row(line);
+            double column[6]{};
+            for (double& value : column) {
+                row >> value;
+            }
+            energy += column[5];
+        }
+    }
+    std::filesystem::remove(path);
+    require(header.size() > 14 &&
+                header.compare(header.size() - 14, 14, "\tpump_energy_J") == 0,
+            "header does not name the pump_energy_J column: " + header);
+    require_close(energy, *params.pump.pulse_energy, 1e-6, "pump energy column sum");
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -239,5 +277,6 @@ int main(int argc, char** argv)
         {"duplicate_and_malformed_rejected", duplicate_and_malformed_rejected},
         {"infinity_parsed", infinity_parsed},
         {"writer_header_and_snapshots", writer_header_and_snapshots},
+        {"writer_reports_pump_pulse_energy", writer_reports_pump_pulse_energy},
     });
 }

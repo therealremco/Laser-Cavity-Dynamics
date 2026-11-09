@@ -20,22 +20,22 @@ struct CavityParams {
 };
 
 struct GainMediumParams {
-    double start = 3.0e-3;
-    double length = 9.0e-3;
+    double start = 5.0e-3;
+    double length = 5.0e-3;
     double n_medium = 1.5;
-    double cross_section = 1e-20;
-    double lifetime = 1e-9;
+    double cross_section = 1e-19;
+    double lifetime = 0.67e-9;
     double quantum_yield = 1.0;
-    double beta = 1e-4;
-    double internal_loss = 0.0;
+    double beta = 1e-6;
+    double internal_loss = 50.0;
     double molecule_density = 0.0;
     double emission_wavelength = 5.5e-7;
 };
 
 struct PumpParams {
     double wavelength = 4.0e-7;
-    double start = 3.0e-3;
-    double length = 9.0e-3;
+    double start = 5.0e-3;
+    double length = 5.0e-3;
     std::optional<double> pulse_energy;
     double pulse_duration = 1e-13;
     std::optional<double> power;
@@ -48,7 +48,7 @@ struct PumpParams {
 struct SimulationParams {
     std::size_t cells_in_gain = 60;
     std::optional<double> duration;
-    double round_trips = 25.0;
+    double round_trips = 10.0;
     std::size_t snapshot_interval = 0;
 };
 
